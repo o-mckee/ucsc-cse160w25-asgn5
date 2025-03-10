@@ -1,5 +1,17 @@
 import * as THREE from 'three';
 
+function render(time) {
+    time *= 0.001; // convert time to seconds
+
+    cube.rotation.x = time;
+    cube.rotation.y = time;
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+
 function main() {
     // look up canvas
     const canvas = document.querySelector('#c');
@@ -21,6 +33,14 @@ function main() {
     // create three.js Scene
     const scene = new THREE.Scene();
 
+    {
+        const color = 0xFFFFFF;
+        const intensity = 3;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+    }
+
 
     // MAKE A CUBE:
 
@@ -29,7 +49,7 @@ function main() {
     const boxHeight = 1;
     const boxDepth = 1;
     const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-    const material = new THREE.MeshBasicMaterial({color: 0x44aa88});
+    const material = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
     // create the cube mesh using the geometry and the material
     const cube = new THREE.Mesh(geometry, material);
@@ -38,7 +58,17 @@ function main() {
     scene.add(cube);
 
     // RENDER THE SCENE:
-    renderer.render(scene, camera);
+    function render(time) {
+        time *= 0.001; // convert time to seconds
+    
+        cube.rotation.x = time;
+        cube.rotation.y = time;
+    
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+    }
+    
+    requestAnimationFrame(render);
 
 }
 
