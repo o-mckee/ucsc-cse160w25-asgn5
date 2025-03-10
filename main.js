@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 function main() {
     // look up canvas
     const canvas = document.querySelector('#c');
