@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 function main() {
     // look up canvas
     const canvas = document.querySelector('#c');
@@ -39,3 +41,5 @@ function main() {
     renderer.render(scene, camera);
 
 }
+
+main();
