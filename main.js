@@ -72,6 +72,17 @@ function main() {
         scene.add(mesh);
     }
 
+    function makeCube(cColor) {
+        const cSize = 2;
+        const cGeo = new THREE.BoxGeometry(cSize, cSize, cSize);
+        const cMat = new THREE.MeshPhongMaterial({color: cColor});
+        const cMesh = new THREE.Mesh(cGeo, cMat);
+        cMesh.position.y = 1
+        scene.add(cMesh);
+    }
+
+    makeCube(0x448844); 
+
       // ADD SPHERE
     {
         const sphereRadius = 3;
@@ -82,6 +93,45 @@ function main() {
         const mesh = new THREE.Mesh(sphereGeo, sphereMat);
         mesh.position.set(-sphereRadius - 1, sphereRadius + 2, 0);
         scene.add(mesh);
+    }
+
+    // ADD CYLINDER
+    {
+        const radiusTop = 2;
+        const radiusBot = 2;
+        const cylHeight = 4;
+        const cylRadSegments = 12;
+        const cylGeo = new THREE.CylinderGeometry(radiusTop, radiusBot, cylHeight, cylRadSegments);
+        const cylMat = new THREE.MeshPhongMaterial({color: 0x884488});
+        const cylMesh = new THREE.Mesh(cylGeo, cylMat);
+        cylMesh.position.y = 1;
+        cylMesh.position.x = 15;
+        scene.add(cylMesh);
+    }
+
+    // ADD FISH
+    // add 3d model (.obj)
+    {
+        const objLoader = new OBJLoader();
+        const mtlLoader = new MTLLoader();
+        mtlLoader.load('public/fish.mtl', (mtl) => {
+            mtl.preload();
+            for (const material of Object.values(mtl.materials)) {
+                material.side = THREE.DoubleSide;
+            }
+            objLoader.setMaterials(mtl);
+        });
+
+        objLoader.load('public/fish.obj', (fishObjRoot) => {
+            fishObjRoot.scale.setScalar(2);
+            scene.add(fishObjRoot);
+            fishObjRoot.position.set(3, 0, -2);
+        });
+
+        objLoader.load('public/hat.obj', (hatObjRoot) => {
+            hatObjRoot.scale.setScalar(2);
+            scene.add(hatObjRoot);
+        });
     }
 
     class ColorGUIHelper {
@@ -116,18 +166,18 @@ function main() {
 
         // directional light
         const color = 0xFFFFFF;
-        const intensity = 5;
+        const intensity = 7;
         const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(0, 10, 0);
+        light.position.set(-10, 10, 5);
         light.target.position.set(-5, 0, 0);
         scene.add(light);
         scene.add(light.target);
 
         // point light
         const pointColor = 0xFFFFFF;
-        const pointIntensity = 150;
+        const pointIntensity = 250;
         const pointLight = new THREE.PointLight(color, pointIntensity);
-        pointLight.position.set(0, 10, 5);
+        pointLight.position.set(0, 10, -10);
         scene.add(pointLight)
 
         // point light mesh
@@ -136,7 +186,7 @@ function main() {
             const pointGeo = new THREE.BoxGeometry(pointSize, pointSize, pointSize);
             const pointMat = new THREE.MeshBasicMaterial({color: 0xFFF933});
             const pointMesh = new THREE.Mesh(pointGeo, pointMat);
-            pointMesh.position.set(0, 10, 5);
+            pointMesh.position.set(10, 10, -10);
             scene.add(pointMesh);
         }
 
