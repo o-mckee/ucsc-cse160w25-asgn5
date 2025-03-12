@@ -9,6 +9,7 @@ function main() {
     const canvas = document.querySelector('#c');
     // create WebGLRenderer, renders all data you provide to the canvas
     const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+    renderer.shadowMap.enabled = true;
 
     const fov = 45;
     const aspect = 2; // canvas default
@@ -23,7 +24,16 @@ function main() {
     controls.update();
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('black');
+    scene.background = new THREE.Color('0xaaaaaa');
+
+    let fogOn = false;
+    document.getElementById('fogOn').onclick = function() {fogOn = true; };
+    document.getElementById('fogOff').onclick = function() {fogOn = false; };
+    if (fogOn == true) {
+        scene.fog = new THREE.FogExp2(0xaaaaaa, 0.03);
+    } else {
+        scene.fog = null;
+    }
 
     // ADD SKYBOX
     {
@@ -53,20 +63,25 @@ function main() {
         texture.repeat.set(repeats, repeats);
 
         const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
-        const planeMat = new THREE.MeshBasicMaterial({
+        const planeMat = new THREE.MeshStandardMaterial({
             map: texture,
             side: THREE.DoubleSide,
         });
         const mesh = new THREE.Mesh(planeGeo, planeMat);
+        mesh.receiveShadow = true;
         mesh.rotation.x = Math.PI * -0.5;
         scene.add(mesh);
     }
 
     // ADD CUBE
-    const cubeSize = 4;
+    const cubeSize = 3;
     const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-    const cubeMat = new THREE.MeshPhongMaterial({color: 0x002288});
+    const cLoader = new THREE.TextureLoader();
+    const cText = cLoader.load('public/diamondOre.jpg');
+    const cubeMat = new THREE.MeshPhongMaterial({map: cText});
     const mesh = new THREE.Mesh(cubeGeo, cubeMat);
+    mesh.receiveShadow = true;
+    mesh.castShadow = true;
     mesh.position.set(15, 2, 0);
     mesh.rotation.y = 10;
     scene.add(mesh);
@@ -79,6 +94,8 @@ function main() {
         cMesh.position.x = posX * 2;
         cMesh.position.y = 1 + (posY * 2);
         cMesh.position.z = posZ * 2;
+        cMesh.castShadow = true;
+        cMesh.receiveShadow = true;
         scene.add(cMesh);
     }
 
@@ -89,6 +106,8 @@ function main() {
         cMesh.position.x = posX * 2;
         cMesh.position.y = 1 + (posY * 2);
         cMesh.position.z = posZ * 2;
+        cMesh.castShadow = true;
+        cMesh.receiveShadow = true;
         scene.add(cMesh);
     }
 
@@ -105,6 +124,32 @@ function main() {
         cMesh.position.x = posX * 2;
         cMesh.position.y = 1 + (posY * 2);
         cMesh.position.z = posZ * 2;
+        cMesh.castShadow = true;
+        cMesh.receiveShadow = true;
+        scene.add(cMesh);
+    } 
+
+    function makeSnowGrassBlock(posX, posY, posZ) {
+        const cSize = 2;
+        const cGeo = new THREE.BoxGeometry(cSize, cSize, cSize);
+        const loader = new THREE.TextureLoader();
+        const snowMat = new THREE.MeshPhongMaterial({map: loader.load('public/snow.jpg')});
+        const snowGrassMat = new THREE.MeshPhongMaterial({map: loader.load('public/snowGrass.jpg')});
+        const dirtMat = new THREE.MeshPhongMaterial({map: loader.load('public/dirt.jpg')});
+        const mats = [
+            snowGrassMat,
+            snowGrassMat,
+            snowMat,
+            dirtMat,
+            snowGrassMat,
+            snowGrassMat
+        ];
+        const cMesh = new THREE.Mesh(cGeo, mats);
+        cMesh.position.x = posX * 2;
+        cMesh.position.y = 1 + (posY * 2);
+        cMesh.position.z = posZ * 2;
+        cMesh.castShadow = true;
+        cMesh.receiveShadow = true;
         scene.add(cMesh);
     } 
 
@@ -120,10 +165,12 @@ function main() {
         cMesh.position.x = posX * 2;
         cMesh.position.y = 1 + (posY * 2);
         cMesh.position.z = posZ * 2;
+        cMesh.castShadow = true;
+        cMesh.receiveShadow = true;
         scene.add(cMesh);
     }
 
-    makeCube(0x448844, 0, 0, 0);
+    makeCube(0x448844, -3, 0, 1);
 
       // ADD SPHERE
     {
@@ -134,6 +181,8 @@ function main() {
         const sphereMat = new THREE.MeshPhongMaterial({color: 0x882200});
         const mesh = new THREE.Mesh(sphereGeo, sphereMat);
         mesh.position.set(-20, 3, -10);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         scene.add(mesh);
     }
 
@@ -149,6 +198,8 @@ function main() {
         cylMesh.position.z = -18;
         cylMesh.position.y = 13;
         cylMesh.position.x = -7;
+        cylMesh.castShadow = true;
+        cylMesh.receiveShadow = true;
         scene.add(cylMesh);
     }
 
@@ -161,6 +212,8 @@ function main() {
     const flagMat = new THREE.MeshPhongMaterial({color: 0x222288});
     const flagMesh = new THREE.Mesh(flagGeo, flagMat);
     flagMesh.position.set(-4,16,-18);
+    flagMesh.castShadow = true;
+    flagMesh.receiveShadow = true;
     scene.add(flagMesh);
 
     // ADD FLAGPOLE SPHERE
@@ -171,6 +224,8 @@ function main() {
     const sphereMat = new THREE.MeshPhongMaterial({color: 0xaa9900});
     const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
     sphereMesh.position.set(-7, 18, -18);
+    sphereMesh.castShadow = true;
+    sphereMesh.receiveShadow = true;
     scene.add(sphereMesh);
 
     // ADD FISH
@@ -191,27 +246,6 @@ function main() {
             scene.add(fishObjRoot);
             fishObjRoot.position.set(-15, 5, 13);
         });
-    }
-
-    class ColorGUIHelper {
-        constructor(object, prop) {
-            this.object = object;
-            this.prop = prop;
-        }
-        get value() {
-            return `#${this.object[this.prop].getHexString()}`;
-        }
-        set value(hexString) {
-            this.object[this.prop].set(hexString);
-        }
-    }
-
-    function makeXYZGUI(gui, vector3, name, onChangeFn) {
-        const folder = gui.addFolder(name);
-        folder.add(vector3, 'x', -10, 10).onChange(onChangeFn);
-        folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
-        folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
-        folder.open();
     }
 
     // MAKE STONE BRICK BUILDING
@@ -286,58 +320,117 @@ function main() {
     
     }
 
-    // FISHTANK
+    // MAKE SNOW HILL
+    {
+        for (let i = 5; i < 15; i++) { // x
+            for (let j = 0; j < 1; j++) { // y 
+                for (let k = 9; k < 14; k++) { // z
+                    makeSnowGrassBlock(i, j, k);
+                    if (i > 5 && i < 14 && k > 10 && k < 13) {
+                        makeSnowGrassBlock(i, j+1, k);
+                    }
+                }
+            }
+        }
+    }
+
+    // MAKE ICE CUBE
     makeCubeTextureSize(-10, 2, 7, 'public/ice.png', true, 11, 11, 11);
+
+
+    class ColorGUIHelper {
+        constructor(object, prop) {
+            this.object = object;
+            this.prop = prop;
+        }
+        get value() {
+            return `#${this.object[this.prop].getHexString()}`;
+        }
+        set value(hexString) {
+            this.object[this.prop].set(hexString);
+        }
+    }
+
+    class DegRadHelper {
+        constructor(obj, prop) {
+          this.obj = obj;
+          this.prop = prop;
+        }
+        get value() {
+          return THREE.MathUtils.radToDeg(this.obj[this.prop]);
+        }
+        set value(v) {
+          this.obj[this.prop] = THREE.MathUtils.degToRad(v);
+        }
+      }
+
+    function makeXYZGUI(gui, vector3, name, onChangeFn) {
+        const folder = gui.addFolder(name);
+        folder.add(vector3, 'x', -30, 10).onChange(onChangeFn);
+        folder.add(vector3, 'y', 0, 20).onChange(onChangeFn);
+        folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
+        folder.open();
+    }
 
     // ADD LIGHTS AND LIGHT GUI
     {
+
+        // spotlight
+        const color = 0xFFFFFF;
+        const intensity = 550;
+        const light = new THREE.SpotLight(color, intensity, 0, Math.PI/8);
+        light.position.set(-20, 12, 5);
+        light.target.position.set(-20, 7, -5);
+        light.castShadow = true;
+        light.shadow.camera.top = 60;
+        light.shadow.camera.bottom = -60;
+        light.shadow.camera.left = -60;
+        light.shadow.camera.right = 60;
+        scene.add(light);
+        scene.add(light.target);
+
+        const helper = new THREE.SpotLightHelper(light);
+        scene.add(helper);
+
+        const onChange = () => {
+            light.target.updateMatrixWorld();
+            helper.update();
+        };
+
+        onChange();
+
+        const gui = new GUI();
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Color');
+        gui.add(light, 'intensity', 0, 550, 0.01).name('Intensity');
+        gui.add(new DegRadHelper(light, 'angle'), 'value', 0, 90).name('Angle').onChange(onChange);
+        gui.add(light, 'penumbra', 0, 1, 0.01).name('Penumbra');
+
+        makeXYZGUI(gui, light.position, 'Spotlight Position', onChange);
+        makeXYZGUI(gui, light.target.position, 'Spotlight Target', onChange);
+
+
+        // directional light
+        const dirColor = 0xFFFFFF;
+        const dirIntensity = 4;
+        const dirLight = new THREE.DirectionalLight(dirColor, dirIntensity);
+        dirLight.position.set(20, 15, 20);
+        dirLight.target.position.set(0, 2, 0);
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.top = 60;
+        dirLight.shadow.camera.bottom = -60;
+        dirLight.shadow.camera.left = -60;
+        dirLight.shadow.camera.right = 60;
+        scene.add(dirLight);
+        scene.add(dirLight.target);
+
+        const dirHelper = new THREE.DirectionalLightHelper(dirLight);
+        scene.add(dirHelper);
 
         // ambient light
         const ambColor = 0xFFFFFF;
         const ambIntensity = 0.75;
         const ambLight = new THREE.AmbientLight(ambColor, ambIntensity);
         scene.add(ambLight);
-
-        // directional light
-        const color = 0xFFFFFF;
-        const intensity = 7;
-        const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-10, 10, 5);
-        light.target.position.set(-5, 0, 0);
-        scene.add(light);
-        scene.add(light.target);
-
-        // point light
-        const pointColor = 0xFFFFFF;
-        const pointIntensity = 250;
-        const pointLight = new THREE.PointLight(color, pointIntensity);
-        pointLight.position.set(0, 10, -10);
-        scene.add(pointLight)
-
-        // point light mesh
-        const pointSize = 1;
-        const pointGeo = new THREE.BoxGeometry(pointSize, pointSize, pointSize);
-        const pointMat = new THREE.MeshBasicMaterial({color: 0xFFF933});
-        const pointMesh = new THREE.Mesh(pointGeo, pointMat);
-        pointMesh.position.set(10, 10, -10);
-        scene.add(pointMesh);
-
-
-        const helper = new THREE.DirectionalLightHelper(light);
-        scene.add(helper);
-
-        function updateLight() {
-            light.target.updateMatrixWorld();
-            helper.update();
-        }
-        updateLight();
-
-        const gui = new GUI();
-        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
-        gui.add(light, 'intensity', 0, 5, 0.01);
-
-        makeXYZGUI(gui, light.position, 'Directional Light Position', updateLight);
-        makeXYZGUI(gui, light.target.position, 'Directional Light Target', updateLight);
     }
 
     function resizeRenderer(renderer) {
@@ -354,8 +447,15 @@ function main() {
 
     function render(time) {
 
+        if (fogOn == true) {
+            scene.fog = new THREE.FogExp2(0xaaaaaa, 0.03);
+        } else {
+            scene.fog = null;
+        }
+
         time *= 0.001;
-        //pointMesh.rotation.z = time;
+        mesh.rotation.z = time;
+        mesh.rotation.x = time;
         
 
         if (resizeRenderer(renderer)) {
