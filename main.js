@@ -14,7 +14,7 @@ function main() {
     const fov = 45;
     const aspect = 2; // canvas default
     const near = 0.1;
-    const far = 100;
+    const far = 250;
     
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.position.set(0, 10, 20);
@@ -35,6 +35,40 @@ function main() {
         scene.fog = null;
     }
 
+
+    // RENDER TARGET SETUP
+    const rtWidth = 512;
+    const rtHeight = 512;
+    const renderTarget = new THREE.WebGLRenderTarget(rtWidth, rtHeight);
+    const rtFov = 75;
+    const rtAspect = rtWidth / rtHeight;
+    const rtNear = 0.1;
+    const rtFar = 5;
+    const rtCamera = new THREE.PerspectiveCamera(rtFov, rtAspect, rtNear, rtFar);
+    rtCamera.position.z = 4;
+
+    const rtScene = new THREE.Scene();
+    rtScene.background = new THREE.Color('black');
+    // render target light
+    {
+        const color = 0xFFFFFF;
+        const intensity = 5;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        rtScene.add(light);
+    }
+    // render target cylinder
+    const rtRadiusTop = 1;
+    const rtRadiusBot = 1;
+    const rtCylHeight = 3;
+    const rtCylRadSegments = 12; // 25 also works
+    const rtCylGeo = new THREE.CylinderGeometry(rtRadiusTop, rtRadiusBot, rtCylHeight, rtCylRadSegments);
+    const rtCylMat = new THREE.MeshPhongMaterial({color: 0x888800});
+    const rtCylMesh = new THREE.Mesh(rtCylGeo, rtCylMat);
+    //cylMesh.rotation.set(0, 0, 1);
+    rtScene.add(rtCylMesh);
+
+
     // ADD SKYBOX
     {
         const loader = new THREE.CubeTextureLoader();
@@ -51,7 +85,7 @@ function main() {
 
     // ADD FLOOR PLANE
     {
-        const planeSize = 60;
+        const planeSize = 70;
  
         const loader = new THREE.TextureLoader();
         const texture = loader.load('public/snow.jpg');
@@ -76,9 +110,9 @@ function main() {
     // ADD CUBE
     const cubeSize = 3;
     const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-    const cLoader = new THREE.TextureLoader();
-    const cText = cLoader.load('public/diamondOre.jpg');
-    const cubeMat = new THREE.MeshPhongMaterial({map: cText});
+    //const cLoader = new THREE.TextureLoader();
+    //const cText = cLoader.load('public/diamondOre.jpg');
+    const cubeMat = new THREE.MeshPhongMaterial({map: renderTarget.texture});
     const mesh = new THREE.Mesh(cubeGeo, cubeMat);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
@@ -254,16 +288,16 @@ function main() {
         // floor
         for (let i = -10; i < -4; i++) {
             for (let j = -5; j < 5; j++) {
-                makeCubeTexture(j, 0, i, 'public/stonebrick.jpg');
+                makeCubeTexture(j, 0, i, 'public/stonebrick.jpg', false);
             }
         }
 
         // back
         for (let i = 1; i <= 3; i++) {
             for (let j = -5; j < 5; j++) {
-                makeCubeTexture(j, i, -10, 'public/stonebrick.jpg');
+                makeCubeTexture(j, i, -10, 'public/stonebrick.jpg', false);
                 if (i == 1 && Math.abs(j) % 2 == 1) {
-                    makeCubeTexture(j, 4, -10, 'public/stonebrick.jpg');
+                    makeCubeTexture(j, 4, -10, 'public/stonebrick.jpg', false);
                 }
             }
         }
@@ -271,13 +305,17 @@ function main() {
         // front
         for (let i = 1; i <= 2; i++) {
             for (let j = -5; j < 5; j++) {
-                if (j != -1) { // door space
-                    makeCubeTexture(j, i, -5, 'public/stonebrick.jpg');
+                if (j != -1 && j != 0 && (i != 2 || j != -3 && j != 2 && j != -4 && j != 3)) { // door space
+                    makeCubeTexture(j, i, -5, 'public/stonebrick.jpg', false);
                 }
-                if (i == 1) {
-                    makeCubeTexture(j, 3, -5, 'public/stonebrick.jpg'); // full line
-                    if (Math.abs(j) % 2 == 0) { // uneven placement
-                        makeCubeTexture(j, 4, -5, 'public/stonebrick.jpg');
+                if (i == 2 && (j == -3|| j == 2 || j == -4 || j == 3)) {
+                    makeCubeTexture(j, i, -5, 'public/glass.png', true);
+                } else {
+                    if (i == 1) {
+                        makeCubeTexture(j, 3, -5, 'public/stonebrick.jpg', false); // full line
+                        if (Math.abs(j) % 2 == 0) { // uneven placement
+                            makeCubeTexture(j, 4, -5, 'public/stonebrick.jpg', false);
+                        }
                     }
                 }
 
@@ -287,11 +325,11 @@ function main() {
         // left side
         for (let i = 1; i <= 2; i++) {
             for (let j = -9; j < -5; j++) {
-                makeCubeTexture(-5, i, j, 'public/stonebrick.jpg');
+                makeCubeTexture(-5, i, j, 'public/stonebrick.jpg', false);
                 if (i == 1) {
-                    makeCubeTexture(-5, 3, j, 'public/stonebrick.jpg'); // full line
+                    makeCubeTexture(-5, 3, j, 'public/stonebrick.jpg', false); // full line
                     if (Math.abs(j) % 2 == 0) {
-                        makeCubeTexture(-5, 4, j, 'public/stonebrick.jpg');
+                        makeCubeTexture(-5, 4, j, 'public/stonebrick.jpg', false);
                     }
                 }
             }
@@ -300,11 +338,11 @@ function main() {
         // right side
         for (let i = 1; i <= 2; i++) {
             for (let j = -9; j < -5; j++) {
-                makeCubeTexture(4, i, j, 'public/stonebrick.jpg');
+                makeCubeTexture(4, i, j, 'public/stonebrick.jpg', false);
                 if (i == 1) {
-                    makeCubeTexture(4, 3, j, 'public/stonebrick.jpg'); // full line
+                    makeCubeTexture(4, 3, j, 'public/stonebrick.jpg', false); // full line
                     if (Math.abs(j) % 2 == 1) {
-                        makeCubeTexture(4, 4, j, 'public/stonebrick.jpg');
+                        makeCubeTexture(4, 4, j, 'public/stonebrick.jpg', false);
                     }
                 }
             }
@@ -313,7 +351,7 @@ function main() {
         // ceiling
         for (let i = -9; i < -5; i++) {
             for (let j = -4; j < 4; j++) {
-                makeCubeTexture(j, 3, i, 'public/stonebrick.jpg');
+                makeCubeTexture(j, 3, i, 'public/stonebrick.jpg', false);
             }
         }
 
@@ -454,8 +492,11 @@ function main() {
         }
 
         time *= 0.001;
-        mesh.rotation.z = time;
         mesh.rotation.x = time;
+        mesh.rotation.z = time;
+
+        rtCylMesh.rotation.y = time;
+        rtCylMesh.rotation.z = time;
         
 
         if (resizeRenderer(renderer)) {
@@ -463,6 +504,10 @@ function main() {
             camera.aspect = canvas.clientWidth / canvas.clientHeight;
             camera.updateProjectionMatrix();
         }
+
+        renderer.setRenderTarget(renderTarget);
+        renderer.render(rtScene, rtCamera);
+        renderer.setRenderTarget(null);
 
         renderer.render(scene, camera);
         requestAnimationFrame(render);
